@@ -19,7 +19,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
 These notices are subject to change at any time without notification.
-These notices may be waived by the author's premission.
+These notices may be waived with the author's written premission.
 
 Honestly guys, I don't care if you make money from ads, but I don't want you
 selling my software or mods of my software. Yes this includes plugins. 
@@ -33,15 +33,18 @@ Alright, lame crap out of the way, let's get to the code!
 """
 
 import time
+import traceback
 import socket
 import math
 import string
 import io
 import hashlib
+import re
+import sys
 
-Timers = None
-Users = None
-Commands = None
+Timers = 0
+Users = 0
+Commands = 0
 
 #Timer = {}
 #Timers = {}
@@ -52,100 +55,170 @@ Commands = None
 #Command = {}
 #Commands = {}
 
-name = None
-motd = None
-port = None
-config = io.FileIO("./ServerSettings.cfg", "r+")
-logfile = io.FileIO("./ServerLog.log", "a+")
-logverbosity = None
-sandbox = None
-anticheat = None
-login = None
-admins = None
-connections = None
+name = ""
+motd = ""
+port = 0
+
+try:
+	
+	config = io.FileIO("./ServerSettings.cfg", "r+")
+	
+except IOError:
+	
+	config = 0
+
+try:
+	
+	logfile = io.FileIO("./ServerLog.log", "a+")
+
+except IOError:
+
+	logfile = 0
+	
+logverbosity = 0
+sandbox = 0
+anticheat = 1
+login = 0
+admins = ""
+connections = ""
 isroutingserver = 0
 
 """
 	Set this to 1 if you want this to be a routing server.
 """
 
-def DebugPrint(listtoprint):
-	for i in listtoprint:
-		print(tuple(listtoprint))
-		return tuple(listtoprint)
+def FormatTime(stringtoformat):
 
-def Log(level, stringtolog):
-	if(logverbosity < -1):
-		logverbosity = 0
-		Log(0, "The verbosity is set too low, reset to 0")
-	elif(logverbosity > 2):
-		logverbosity = 2
-		Log(2, "The verbosity is set too high, reset to 2")
+	localtime = time.localtime()
+	timeString = time.strftime(str(stringtoformat), localtime)
 	
-	levelstr = "?UNKNOWN?"
-	if(isinstance(level, number)):
-		"""
-		2 is severe/critical, 1 is dangerous/important, 0 is info, -1 is debug
-		"""
-		if(level == 2):
-			levelstr = "*SEVERE*"
-		elif(level == 1):
-			levelstr = "!DANGEROUS!"
-		elif(level == 0):
-			levelstr = "#INFO#"
-		elif(level == -1):
-			levelstr = "%DEBUG%"
-		else:
-			Log(-1, "Level " + level + " is unknown")
-	elif(isinstance(level, basestring)):
-		tmpl = string.lower(level)
-		if(tmpl == "c"):
-			levelstr = "*CRITICAL*"
-			level = 2
-		elif(tmpl == "i"):
-			levelstr = "!IMPORTANT!"
-			level = 1
-		else:
-			levelstr = string.upper(tmpl) # For plugin levels.
-			level = 2 # Always log plugin levels
-	else:
-		if(logverbosity == -1):
-			raise Exception("The logging argument must be a number or string.") 
-		else:
-			Log(1, "The logging argument must be a number or a string, logging as unknown.")	
+	#tz = -(time.altzone if localtime.tm_isdst else time.timezone)
+	#timeString += "Z" if tz == 0 else "+" if tz > 0 else "-"
+	#timeString += time.strftime("%H'%M'", time.gmtime(abs(tz)))
+	
+	return bytes(timeString, "UTF-8")
+	
+	#Stolen code. Credits to badp on Stack Overflow. Stolen from here:
+	#http://stackoverflow.com/a/2487161
+	
+def DebugPrint(listtoprint):
 
-	print(levelstr+os.date(" at %d/%m/%y %H:%M:%S : ")+stringtolog) # Always print
-	if(logverbosity < level):
-		logfile.write(levelstr + os.date(" at %d/%m/%y %H:%M:%S : ") + stringtolog)
+	for i in listtoprint:
+	
+		sys.stdout.buffer.write(i)
+		
+	return tuple(listtoprint)
 
+def Log(level, bytestolog):
+	global logverbosity
+	global logfile
+	
+	if(isinstance(bytestolog, str)):
+		raise TypeError("Second argument must be bytes.")
+	
+	try:
+		global logverbosity
+		global logfile
+		
+		if(logverbosity < -1):
+			logverbosity = 0
+			Log(0, b"The verbosity is set too low, reset to 0")
+		elif(logverbosity > 2):
+			logverbosity = 2
+			Log(2, b"The verbosity is set too high, reset to 2")
+		
+		levelbytes = b"?UNKNOWN?"
+		if(isinstance(level, int)):
+			"""
+			2 is severe/critical, 1 is dangerous/important, 0 is info, -1 is debug
+			"""
+			if(level == 2):
+				levelbytes = b"*SEVERE*"
+			elif(level == 1):
+				levelbytes = b"!DANGEROUS!"
+			elif(level == 0):
+				levelbytes = b"#INFO#"
+			elif(level == -1):
+				levelbytes = b"%DEBUG%"
+			else:
+				Log(-1, b"Level " + str(level) + b" is unknown.")
+		elif(isinstance(level, bytes)):
+			tmpl = bytes.lower(level)
+			if(tmpl == b"c"):
+				levelbytes = b"*CRITICAL*"
+				level = 2
+			elif(tmpl == b"i"):
+				levelbytes = b"!IMPORTANT!"
+				level = 1
+			else:
+				levelbytes = bytes.upper(tmpl) # For plugin levels.
+				level = 2 # Always log plugin levels
+		else:
+			if(logverbosity == -1):
+				raise Exception(b"The logging argument must be a number or string.") 
+			else:
+				Log(1, b"The logging argument must be a number or a string, logging as unknown.")	
+
+		sys.stdout.buffer.write(levelbytes+FormatTime(" at %d/%m/%y %H:%M:%S : ")+bytestolog+b"\n") # Always print
+		if(logverbosity < level):
+			logfile.write(levelbytes + FormatTime(" at %d/%m/%y %H:%M:%S : ")+ bytestolog+ b"\n")
+	
+	except NameError:	
+		traceback.print_exc()
+		sys.stdout.buffer.write("*SEVERE*" + FormatTime(" at %d/%m/%y %H:%M:%S : ").decode("UTF-8") + "An important variable has not yet been assigned!") # Always print
+		logfile.write(b"*SEVERE*" + FormatTime(" at %d/%m/%y %H:%M:%S : ") + b"An important variable has not yet been assigned! \n")
+		logverbosity = 0
+	
 def ParseFile(pattern, file = config):
-	s = ""
-	varTable = []
-	shouldrunloop = True
 	
 	if(isinstance(pattern, list)):
 		
-		while(shouldrunloop):
+		varTable = []
+		
+		for i in pattern:
+		
+			hasfound = 0
+			file.seek(0)
 			
-			s = file.readline()
-			
-			for i in pattern:
+			for s in file:
 				
-				_, findstart = s.find(i)
-				findend, _ = s.find("\n", findstart)
-				varTable[len(varTable)+1] = s.sub(findstart + 1, findend - 1)
+				if(re.match(b"#(?!.*)", s)):
+				
+					pass
+					
+				else:
+				
+					matchobj = re.search(i+b"(.*)$", s)
+					
+					if(matchobj == None):
+						
+						pass
+				
+					else:
+					
+						hasfound = 1
+						varTable.append(matchobj.group(1))
+						break
+						
+			if(not hasfound):
 			
+				Log(-1, DebugPrint([b"Pattern " + i + b" was not found with ParseFile() regex!"]))
+		
 		return tuple(varTable)
 	
-	elif(isinstance(pattern, str)):
+	elif(isinstance(pattern, bytearray)):
 		
-		while(shouldrunloop):
+		for s in file:
 			
-			s = file.readline()
-			_, findstart = s.find(pattern)
-			findend, _ = s.find("\n", findstart)
+			matchobj = re.search(i+b".*[\n]", s)
 			
-		return s.sub(findstart + 1, findend - 1)
+			if(matchobj != None):
+			
+				Log(-1, b"Pattern " + pattern + b" was not found with ParseFile() regex!")
+				
+			else:
+			
+				return DebugPrint([matchobj.extend("")])
 	
 	else:
 		
@@ -171,101 +244,148 @@ class Servers: #For routing servers only!
 class RoutingServer:
 	
 	def __init__(self):
-		self.config = io.open("./ServerSettings.cfg", "r+")
-		self.logfile = io.open("./ServerLog.log", "a+")
-		exitbool = false
-		if (config == nil):
-			config = io.open("./RoutingServerSettings.cfg", "w")
-			config.write("addresstoconnect=\n", "isencrypted=0\n")
-			exitbool = True
+		try:
+			self.config = io.FileIO("./RoutingServerSettings.cfg", "r+")
+		except IOError:
+			self.config = 0
+		
+		try:
+			self.logfile = io.FileIO("./RoutingServerLog.log", "a+")
+		except IOError:
+			self.logfile = 0
+		
+		exitbool = 0
+		
+		if (not self.config):
+		
+			self.config = io.open("./RoutingServerSettings.cfg", "w")
+			self.config.write("addresstoconnect=\n", "isencrypted=0\n")
+			
+			exitbool = 1
 
-		if (logfile == nil):
-			logfile = io.open("./RoutingServerLog.log", "w")
-			print("@START@"+os.date(" at %d/%m/%y %H:%M:%S : ")+"Log Started")
-			logfile.write("@START@"+os.date(" at %d/%m/%y %H:%M:%S : ")+"Log Started")
+		if (not self.logfile):
+			
+			self.logfile = io.open("./RoutingServerLog.log", "w")
+			sys.stdout.buffer.write("@START@"+FormatTime(" at %d/%m/%y %H:%M:%S : ")+"Log Started")
+			self.logfile.write("@START@"+FormatTime(" at %d/%m/%y %H:%M:%S : ")+"Log Started\n")
 
 		if (exitbool):
-			print("Configure your configuration file, exiting...")
+			sys.stdout.buffer.write("Configure your configuration file, exiting...")
 			return
 		
 		
 class Server:
-	
+
+	global name
+	global motd
+	global port
+	global config
+	global logfile
+	global logverbosity
+	global sandbox
+	global anticheat
+	global login
+	global admins
+	global connections
+	global isroutingserver
+		
 	def __init__(self):
-		exitbool = false
-		if (config == nil):
-			config = io.open("./ServerSettings.cfg", "w")
-			config.write("name=A Cortex Command Server\n", 
-				"motd=Welcome!\n",
-				"port=12525\n",
-				"logverbosity=-1\n",
-				"2 = Critical information and severe problems logged only!\n",
-				"1 = Dangerous problems and important information logged only.\n",
-				"0 = all info logged.\n",
-				"-1 debug, will crash instead of severe. Will also print extra information.\n",
-				"forcedsandbox=0\n",
-				"anticheat=1\n",
-				"requireslogin=0\n",
-				"administrators=\n",
-				"If there are no names, there are no admins. Much safer than everyone being admin :P\n",
-				"bannedusers=\n",
-				"whitelist=\n",
-				"If there are no names, there will be no whitelist!\n",
-				"limitconnections=4\n",
-				"0 is no limit, otherwise, you can use any number.\n")
-			exitbool = True
+		
+		global name
+		global motd
+		global port
+		global config
+		global logfile
+		global logverbosity
+		global sandbox
+		global anticheat
+		global login
+		global admins
+		global connections
+		global isroutingserver
+		
+		if(config):
+			if(config.read(1) == ""):
+				self.config = 0
+		
+		exitbool = 0
+		
+		if (not config):
+		
+			config = io.FileIO(b"ServerSettings.cfg", "w")
+			
+			config.write(b"name=A Cortex Command Server\n"+
+				b"motd=Welcome!\n"+
+				b"port=12525\n"+
+				b"logverbosity=-1\n"+
+				b"2 = Critical information and severe problems logged only!\n"+
+				b"1 = Dangerous problems and important information logged only.\n"+
+				b"0 = all info logged.\n"+
+				b"-1 debug, will crash instead of severe. Will also print extra information.\n"+
+				b"forcedsandbox=0\n"+
+				b"anticheat=1\n"+
+				b"requireslogin=0\n"+
+				b"administrators=\n"+
+				b"If there are no names, there are no admins. Much safer than everyone being admin :P\n"+
+				b"bannedusers=\n"+
+				b"whitelist=\n"+
+				b"If there are no names, there will be no whitelist!\n"+
+				b"limitconnections=4\n"+
+				b"0 is no limit, otherwise, you can use any number.\n")
+			exitbool = 1
 
-		if (logfile == nil):
-			logfile = io.open("./ServerLog.log", "w")
-			print("@START@"+os.date(" at %d/%m/%y %H:%M:%S : ")+"Log Started")
-			logfile.write("@START@"+os.date(" at %d/%m/%y %H:%M:%S : ")+"Log Started")
+		if (not logfile):
+			self.logfile = io.open("./ServerLog.log", "w")
+			sys.stdout.buffer.write("@START@"+FormatTime(" at %d/%m/%y %H:%M:%S : ")+"Log Started")
+			logfile.write(b"@START@"+FormatTime(" at %d/%m/%y %H:%M:%S : ")+b"Log Started\n")
 
-		if (exitbool):
-			print("Configure your configuration file, restarting...")
+		if (exitbool == 1):
+			sys.stdout.buffer.write("Configure your configuration file, restarting...")
 			return
 
-	name, motd, port, logverbosity, sandbox, anticheat, login, admins,
-	connections = ParseFile(["name=", "motd=", "port=", "logverbosity=", 
-	"forcedsandbox=", "anticheat=", "requireslogin=", "administrators=", 
-	"limitconnections="])
-	
-	port = int(port)
-	logverbosity = int(logverbosity)
-	sandbox = int(sandbox)
-	anticheat = int(anticheat)
-	login = int(login)
-	connections = int(connections)
-	
-	Log(0, "Starting server...")
-	Log(0, "Reading plugin files...") #TODO
-	Log(0, "Reading plugin files. Done.")
-	
-	udp = socket.socket(socket.SOCK_DGRAM, socket.AF_INET)
-	udp.settimeout(0.0) # Sorry for people with slow connections :(
-	
-	Log("i", "Server port set to: " + tostring(port))
-	Log("i","Server name set to: " + name)
-	Log("i","Server message set to: " + motd)
-	Log("i","Server logging verbosity level set to: " + tostring(logverbosity))
-	
-	Log(0, udp.setsockname("*", tonumber(port)))
-	Log(0, "Bound successfully") 
-	Log(0, "Starting server. Done.")
-	Log(0, "Server started.")
-	run = True
-	runStart = time.time()
-	runTime = runStart
-	while(run):
-		datagram, externip, externport = udp.receivefrom()
-		for _,_0 in pairs(Timers):
-			print("")
+		name, motd, port, logverbosity, sandbox, anticheat, login, admins, connections = ParseFile([b"name=", b"motd=", b"port=", b"logverbosity=", 
+		b"forcedsandbox=", b"anticheat=", b"requireslogin=", b"administrators=", 
+		b"limitconnections="])
 		
-		if(datagram != nil and externip != nil and externport != nil):
-			for usr in Users.Connected:
-				if(externip != usr.ip and True):
-					Users.Connected[Users.Connected + 1] = User.new(externip, externport)
-				else:
-					udp.sendto("Error: Server full", externip, externport) 
+		port = int(port)
+		logverbosity = int(logverbosity)
+		sandbox = int(sandbox)
+		anticheat = int(anticheat)
+		login = int(login)
+		connections = int(connections)
+	
+		Log(0, b"Starting server...")
+		Log(0, b"Reading plugin files...") #TODO
+		Log(0, b"Reading plugin files. Done.")
+		
+		udp = socket.socket(socket.SOCK_DGRAM, socket.AF_INET)
+		udp.settimeout(0.0)
+		
+		Log(b"i", b"Server port set to: " + bytes(str(port), "UTF-8"))
+		Log(b"i", b"Server name set to: " + name)
+		Log(b"i", b"Server message set to: " + motd)
+		Log(b"i", b"Server logging verbosity level set to: " + bytes(str(logverbosity), "UTF-8"))
+		
+		Log(0, b"Bound successfully") 
+		Log(0, b"Starting server. Done.")
+		Log(0, b"Server started.")
+		
+		run = 1
+		runStart = time.time()
+		runTime = runStart
+		
+		while(run):
+			datagram, externip, externport = udp.recvfrom()
+			
+			for _,_0 in pairs(Timers):
+				sys.stdout.buffer.write("")
+		
+			if(datagram != None and externip != None and externport != None):
+				
+				for usr in Users.ConnectedIPs():
+					
+					if(externip != usr.ip and 1):
+						Users.Connected[Users.Connected + 1] = User.new(externip, externport)
 
 	
 class Timer:
@@ -380,3 +500,29 @@ class Map:
 		self.image = image
 		return
 		
+	def getImage():
+		return self.image
+		
+if(__name__ == "__main__"):
+		
+		if(len(sys.argv) > 1):
+		
+			if(sys.argv[1] == "routing"):
+			
+				pass
+				
+			elif(sys.argv[1] == "game"):
+			
+				server = Server()
+				
+			elif(sys.argv[1] == "info"):
+			
+				sys.stdout.buffer.write("Just read the README file.")
+				
+			else:
+			
+				raise Exception("Unknown command line argument(s)")
+				
+		else:
+		
+			server = Server()
