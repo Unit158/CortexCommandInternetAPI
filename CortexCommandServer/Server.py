@@ -42,19 +42,6 @@ import hashlib
 import re
 import sys
 
-Timers = 0
-Users = 0
-Commands = 0
-
-#Timer = {}
-#Timers = {}
-
-#Plugin = {}
-#Plugins = {}
-
-#Command = {}
-#Commands = {}
-
 name = ""
 motd = ""
 port = 0
@@ -89,6 +76,9 @@ isroutingserver = 0
 
 def FormatTime(stringtoformat):
 
+	#Stolen code. Credits to badp on Stack Overflow. Stolen from here:
+	#http://stackoverflow.com/a/2487161
+	
 	localtime = time.localtime()
 	timeString = time.strftime(str(stringtoformat), localtime)
 	
@@ -97,9 +87,6 @@ def FormatTime(stringtoformat):
 	#timeString += time.strftime("%H'%M'", time.gmtime(abs(tz)))
 	
 	return bytes(timeString, "UTF-8")
-	
-	#Stolen code. Credits to badp on Stack Overflow. Stolen from here:
-	#http://stackoverflow.com/a/2487161
 	
 def DebugPrint(listtoprint):
 
@@ -273,22 +260,15 @@ class RoutingServer:
 			sys.stdout.buffer.write("Configure your configuration file, exiting...")
 			return
 		
+		run = 1
 		
+		udp = socket.socket(socket.AF_INET, socket.DGRAM)
+		
+		while(run):
+			
 class Server:
-
-	global name
-	global motd
-	global port
-	global config
-	global logfile
-	global logverbosity
-	global sandbox
-	global anticheat
-	global login
-	global admins
-	global connections
-	global isroutingserver
-		
+	
+	
 	def __init__(self):
 		
 		global name
@@ -305,7 +285,9 @@ class Server:
 		global isroutingserver
 		
 		if(config):
+		
 			if(config.read(1) == ""):
+			
 				self.config = 0
 		
 		exitbool = 0
@@ -335,11 +317,13 @@ class Server:
 			exitbool = 1
 
 		if (not logfile):
+		
 			self.logfile = io.open("./ServerLog.log", "w")
 			sys.stdout.buffer.write("@START@"+FormatTime(" at %d/%m/%y %H:%M:%S : ")+"Log Started")
 			logfile.write(b"@START@"+FormatTime(" at %d/%m/%y %H:%M:%S : ")+b"Log Started\n")
 
 		if (exitbool == 1):
+		
 			sys.stdout.buffer.write("Configure your configuration file, restarting...")
 			return
 
@@ -375,6 +359,7 @@ class Server:
 		runTime = runStart
 		
 		while(run):
+			
 			datagram, externip, externport = udp.recvfrom()
 			
 			for _,_0 in pairs(Timers):
@@ -387,7 +372,6 @@ class Server:
 					if(externip != usr.ip and 1):
 						Users.Connected[Users.Connected + 1] = User.new(externip, externport)
 
-	
 class Timer:
 
 	def __init__(self):
@@ -404,8 +388,6 @@ class Plugin:
 	def __init__(self):
 		return
 		
-#	def
-
 class Command:
 
 	def __init__(self, pattern, permission):
@@ -414,8 +396,6 @@ class Command:
 	def __call__(self):
 		return
 		
-#	def 
-#		
 class Users:
 	
 	def __init__(self):
@@ -476,8 +456,7 @@ class Users:
 	
 	def unwhitelistuser(self):
 		return
-		
-	
+			
 class User:
 
 	def __init__(self, ip, port):
