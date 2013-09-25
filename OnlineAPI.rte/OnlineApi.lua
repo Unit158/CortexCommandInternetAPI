@@ -23,6 +23,8 @@ end
 ]]--
 
 function OnlineApi:registerHDFirearm(HDFirearm)
+
+function OnlineApi:registerActor(actor)
 	
 end
 
