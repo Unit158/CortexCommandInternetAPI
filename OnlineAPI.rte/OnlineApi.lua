@@ -1,9 +1,8 @@
-OnlineApi = {}
-
-local Singleton = {};
+local Server = {name = "", port = 0}
+local OnlineApi = {ServerList = {}}
 
 function OnlineApi:new()
-	print("This is a singleton class! You cannot make a new OnlineAPI instance, use getinstance() instead.")
+	print("This is a singleton class! You cannot make a new OnlineAPI instance.")
 end
 
 --[[
@@ -24,6 +23,8 @@ end
 
 function OnlineApi:registerHDFirearm(HDFirearm)
 
+end
+
 function OnlineApi:registerActor(actor)
 	
 end
@@ -32,18 +33,33 @@ function OnlineApi:forceupdate()
 	
 end
 
+function OnlineApi:startserver(name, port)
+	o = setmetatable({}, {__index = Server})
+	o.name = name
+	o.port = port
+	self.ServerList[name] = o
+	return o
+end
 
+function OnlineApi:closeserver(name)
+	
+end
 
-function OnlineApi:getinstance()
-	return Singleton
+function Server:updated(callback)
+	callback()
+end
+
+function Server:close() 
+	
 end
 
 setmetatable(OnlineApi, {
 	
 	__metatable = function() print("This is a locked metatable.") end
 	
-	__newindex = function() print("You may not extend this table.") end
+	__newindex = function() print("You may not change this table.") end
 	
 }
+)
 
-Singleton = OnlineApi
+_G.OnlineApi = OnlineApi

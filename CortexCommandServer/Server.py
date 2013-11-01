@@ -18,7 +18,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
-These notices are subject to change at any time without notification.
+These notices are subject to change from the author at any time without notification.
 These notices may be waived with the author's written premission.
 
 Honestly guys, I don't care if you make money from ads, but I don't want you
@@ -26,7 +26,7 @@ selling my software or mods of my software. Yes this includes plugins.
 
 You can e-mail me to work out a commercial licence if you want to sell mods.
 
-E-mail to: chickenman158@hotmail.com
+E-mail to: chickenman158@gmail.com
 
 
 Alright, lame crap out of the way, let's get to the code!
