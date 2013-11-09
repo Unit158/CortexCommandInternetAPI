@@ -1,5 +1,11 @@
+plugins = { -- Should be a string, file path to a Lua script. Like so:
+	"OnlineAPI.rte/plugins/testplugin.lua"
+} 
+
+
 local Server = {name = "", port = 0}
-local OnlineApi = {ServerList = {}}
+local Event = {}
+local OnlineApi = {ServerList = {},}
 
 function OnlineApi:new()
 	print("This is a singleton class! You cannot make a new OnlineAPI instance.")
@@ -45,13 +51,14 @@ function OnlineApi:closeserver(name)
 	
 end
 
-function Server:updated(callback)
-	callback()
+function Event.new()
+	o = {}
+	setmetatable(o, { __index = Event })
+	return o
 end
 
-function Server:close() 
-	
-end
+OnlineApi.serverStarted = Event.new()
+OnlineApi.serverEnded = Event.new()
 
 setmetatable(OnlineApi, {
 	
@@ -63,3 +70,7 @@ setmetatable(OnlineApi, {
 )
 
 _G.OnlineApi = OnlineApi
+
+for _, filepath in pairs(plugins) do
+	dofile(filepath)
+end
