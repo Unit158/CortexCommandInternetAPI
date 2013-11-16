@@ -32,7 +32,7 @@ E-mail to: chickenman158@gmail.com
 Alright, lame crap out of the way, let's get to the code!
 """
 
-import API
+import API, GameServer, SystemServer, Client
 		
 if(__name__ == "__main__"):
 		
@@ -47,11 +47,11 @@ if(__name__ == "__main__"):
 				server = GameServer()
 				
 			elif(sys.argv[1] == "client"):
-				
-				
+				raise Exception("Unimplemented")
 				
 			elif(sys.argv[1] == "clientgame"):
 				raise Exception("Unimplemented")
+				
 			elif(sys.argv[1] == "info"):
 			
 				sys.stdout.buffer.write("Just read the README file.")
@@ -62,4 +62,4 @@ if(__name__ == "__main__"):
 				
 		else:
 		
-			server = Server()
+			server = GameServer()
