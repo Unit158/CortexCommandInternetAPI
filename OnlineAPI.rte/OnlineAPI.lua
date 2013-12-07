@@ -1,16 +1,5 @@
 NetworkingAPI = {}
-
-local Singleton = {};
-
---[[
-	
-	Requires: No arguments
-	Returns: Errors, as this is just to help people use the Singletons.
-]]--
-
-function NetworkingAPI:new()
-	print("This is a singleton class! You cannot make a new NetworkingAPI instance, use getinstance() instead.")
-end
+netsock = 0
 
 --[[
 	Registers an SceneObject with the API. Will check that the server has the same SceneObject.
@@ -19,7 +8,7 @@ end
 ]]--
 
 function NetworkingAPI:registerSceneObject(SceneObject)
-
+	
 end
 
 --[[
@@ -242,6 +231,7 @@ end
 function NetworkingAPI:sendmessage(msg, channel)
 	reply = "Failed"
 	
+	if 
 	if (reply == "Failed") then
 		print("There was no reply from the server. Pinging the server.")
 	end
@@ -253,7 +243,7 @@ function NetworkingAPI:
 if(not socket) then
 assert(socket = require("socket"), "LuaSocket is not installed. Nice job.")
 end
-assert(os.execute("./python testinstall.py"), "Python is not installed. Check http://python.org/ for downloads")
+assert(os.execute("./python testinstall.py"), "Python is not installed. Check http://python.org/ for downloads. Python version 3.3 is recommended.")
 
 
 setmetatable(NetworkingAPI, {
@@ -264,4 +254,18 @@ setmetatable(NetworkingAPI, {
 	
 }
 
-Singleton = NetworkingAPI
+
+-- START ACTIVITY CODE
+
+Online = {}
+
+package.loaded.Constants = nil; require("Constants")
+
+function Online:StartActivity()
+	collectgarbage("collect")
+	os.execute("python Client.py")
+end
+
+function Online:UpdateActivity()
+	
+end
