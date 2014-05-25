@@ -1,8 +1,0 @@
-IMPORTANT! THIS PROGRAM USES THE RBL AT: http://www.spamhaus.org/xbl/
-IF YOU SEE A RISE IN TRAFFIC, OR YOU ARE RUNNING AN ILLEGAL COMMERCIAL SERVER, PLEASE SWITCH RBL/DNSBL PROVIDERS! THIS IS YOUR ONLY WARNING!
-
-This package is for a dedicated server. However, it still requires a copy of Cortex Command to run. Put the default installation in the cc folder. Then you put all of the server-side files in the plugins folder.
-
-Then run Server.py to setup your server. After you have configured it, run Server.py again, and the server should launch. You can monitor the game from the window that opens, but you may not take control of any of the players. If you would like to modify something from the server, you will need to learn how to use Python, and possibly Lua.
-
-Portions of this software was written using Python 3.3. You must have a copy of the executable in your path, and it must be named python33.
